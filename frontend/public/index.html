@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#2340F2">
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="icon" href="favicon.ico" sizes="48x48">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <title data-i18n="page.title">Encurtador de links</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600&family=Unbounded:wght@600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue: #2340F2; --ink: #12124A; --yellow: #FFD84A; --sheet: #F3F1FF; --white: #FFFFFF;
+      --on-blue: #DDE1FF; --muted: #56588A; --bar-off: #2A2A7A; --chart-text: #B9BDF5;
+      --display: "Unbounded", "Bricolage Grotesque", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--blue); color: var(--white); font-family: "Bricolage Grotesque", system-ui, sans-serif; line-height: 1.5; }
+    main { max-width: 1040px; margin: 0 auto; padding: 28px 20px 72px; }
+    button { font: inherit; cursor: pointer; }
+    :focus-visible { outline: 3px solid var(--yellow); outline-offset: 3px; }
+
+    .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .lang { display: flex; padding: 4px; background: rgba(255, 255, 255, 0.16); border-radius: 999px; }
+    .lang button { padding: 6px 14px; font-weight: 600; color: var(--white); background: transparent; border: 0; border-radius: 999px; }
+    .lang button[aria-pressed="true"] { color: var(--ink); background: var(--yellow); }
+    .brand { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 800; font-size: 1.3rem; letter-spacing: -0.03em; }
+    .brand img { display: block; width: 38px; height: 38px; }
+    h1 { font-family: var(--display); font-weight: 800; font-size: clamp(2.2rem, 7vw, 4.6rem); line-height: 1.02; letter-spacing: -0.04em; margin: 56px 0 32px; }
+
+    /* Formulário */
+    .pill { display: flex; gap: 8px; padding: 8px; background: var(--white); border-radius: 999px; }
+    .pill input { flex: 1; min-width: 0; padding: 14px 20px; font: inherit; font-size: 1.05rem; color: var(--ink); background: transparent; border: 0; }
+    .pill input:focus-visible { outline: none; }
+    .pill:focus-within { outline: 3px solid var(--yellow); outline-offset: 3px; }
+    .go { padding: 14px 28px; font-weight: 600; color: var(--ink); background: var(--yellow); border: 0; border-radius: 999px; }
+    .go:active { transform: translateY(1px); }
+    @media (max-width: 560px) {
+      .pill { flex-direction: column; border-radius: 24px; }
+      .go { padding: 16px; }
+    }
+
+    #msg { min-height: 1.5em; margin: 12px 4px 0; color: var(--on-blue); }
+    #msg.error { color: #FFC2B0; }
+
+    /* Resultado: cupom com linha de corte */
+    .result { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 8px; padding: 26px 30px; color: var(--ink); background: var(--yellow); border-radius: 22px; outline: 2px dashed var(--ink); outline-offset: -11px; }
+    .result[hidden] { display: none; }
+    .result a { font-family: var(--display); font-weight: 600; font-size: clamp(1.05rem, 3.6vw, 1.7rem); letter-spacing: -0.03em; color: inherit; word-break: break-all; }
+    .ghost { padding: 10px 20px; font-weight: 600; color: var(--yellow); background: var(--ink); border: 0; border-radius: 999px; }
+    .result :focus-visible { outline-color: var(--ink); }
+
+    /* Painel */
+    .sheet { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 28px; margin-top: 56px; padding: 28px; color: var(--ink); background: var(--sheet); border-radius: 32px; }
+    @media (max-width: 800px) { .sheet { grid-template-columns: minmax(0, 1fr); padding: 20px; border-radius: 24px; } }
+    .sheet :focus-visible { outline-color: var(--blue); }
+    h2 { font-family: var(--display); font-weight: 600; font-size: 1rem; letter-spacing: -0.02em; margin: 0 0 6px; }
+    .summary { margin: 0 0 14px; color: var(--muted); }
+
+    #list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+    .item { display: flex; align-items: stretch; gap: 6px; padding: 6px; background: var(--white); border-radius: 14px; }
+    .item:hover { background: #E7E4FF; }
+    .item.selected { color: var(--white); background: var(--blue); }
+    .item.selected :focus-visible { outline-color: var(--yellow); }
+    .select { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 8px 10px; text-align: left; color: inherit; background: transparent; border: 0; border-radius: 10px; }
+    .favicon { flex: none; width: 34px; height: 34px; padding: 4px; object-fit: contain; background: var(--white); border-radius: 9px; }
+    .favicon.fallback { display: grid; place-items: center; padding: 0; font-family: var(--display); font-weight: 800; color: var(--ink); }
+    .text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .host { font-weight: 600; }
+    .favicon.small { width: 28px; height: 28px; padding: 3px; border-radius: 8px; }
+    .favicon.fallback.small { font-size: 0.85rem; }
+    .favicon.all, .favicon.all.small { padding: 0; background: transparent; border-radius: 25%; }
+    .chart-head { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; margin: 0 0 16px; color: var(--chart-text); }
+    .chart-head strong { color: var(--white); }
+    .dest { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.85rem; opacity: 0.75; }
+    .count { font-family: var(--display); font-weight: 600; font-size: 1.3rem; }
+    .copy-btn { flex: none; align-self: center; padding: 10px 16px; font-weight: 600; color: var(--ink); background: var(--yellow); border: 0; border-radius: 10px; }
+
+    #chart-wrap { padding: 22px 20px 16px; color: var(--chart-text); background: var(--ink); border-radius: 22px; }
+    #chart-wrap h2 { color: var(--white); }
+    #chart-wrap .summary { color: var(--chart-text); }
+    .chart { display: flex; align-items: flex-end; gap: 5px; height: 200px; }
+    .col { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px; font-size: 0.72rem; }
+    .bar { width: 100%; min-height: 4px; background: var(--yellow); border-radius: 6px 6px 0 0; transform-origin: bottom; animation: grow 0.4s ease-out; }
+    .bar.zero { background: var(--bar-off); }
+    @keyframes grow { from { transform: scaleY(0); } }
+    @media (prefers-reduced-motion: reduce) { .bar { animation: none; } }
+    .empty { margin: 0; color: var(--muted); }
+    #chart-wrap .empty { color: var(--chart-text); }
+    /* Se o navegador preencher o campo mesmo assim, mantém o visual do site */
+    .pill input:-webkit-autofill { -webkit-box-shadow: 0 0 0 1000px var(--white) inset; -webkit-text-fill-color: var(--ink); }
+
+    /* Aviso de cookie */
+    .cookie { position: fixed; left: 16px; right: 16px; bottom: max(16px, env(safe-area-inset-bottom)); z-index: 10; max-width: 720px; margin: 0 auto; display: flex; align-items: center; gap: 16px; padding: 16px 20px; color: var(--white); background: var(--ink); border-radius: 18px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35); }
+    .cookie[hidden] { display: none; }
+    .cookie p { flex: 1; margin: 0; font-size: 0.95rem; }
+    .cookie button { flex: none; padding: 10px 22px; font-weight: 600; color: var(--ink); background: var(--yellow); border: 0; border-radius: 999px; }
+    @media (max-width: 520px) { .cookie { flex-direction: column; align-items: stretch; } }
+
+    @media (max-width: 420px) {
+      main { padding-left: 16px; padding-right: 16px; }
+      .sheet { padding: 14px; }
+      .select { gap: 10px; padding: 8px 6px; }
+      .count { font-size: 1.1rem; }
+      .copy-btn { padding: 10px 12px; }
+      #chart-wrap { padding: 18px 14px 14px; }
+      .chart { gap: 3px; }
+      .col { font-size: 0.62rem; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="top">
+      <div class="brand"><img src="logo.svg" alt="" width="38" height="38"><span>encurta</span></div>
+      <div class="lang" role="group" aria-label="Idioma" data-i18n-aria="lang.label">
+        <button type="button" data-lang="pt" aria-pressed="true">PT</button>
+        <button type="button" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+    </div>
+    <h1><span data-i18n="hero.a">Encurte o link.</span><br><span data-i18n="hero.b">Conte cada clique.</span></h1>
+
+    <form id="form" class="pill" autocomplete="off">
+      <input id="url" name="url" type="url" required autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Cole aqui o endereço comprido" aria-label="Endereço a encurtar" data-i18n-placeholder="input.placeholder" data-i18n-aria="input.aria">
+      <button class="go" type="submit" data-i18n="form.submit">Encurtar link</button>
+    </form>
+    <p id="msg" role="status"></p>
+    <div id="result" class="result" hidden>
+      <a id="short" target="_blank" rel="noopener"></a>
+      <button id="copy" class="ghost" type="button" data-i18n="copy.link">Copiar link</button>
+    </div>
+
+    <div class="sheet">
+      <section>
+        <h2 data-i18n="links.title">Seus links</h2>
+        <p id="summary" class="summary"></p>
+        <ul id="list"></ul>
+      </section>
+      <section id="chart-wrap" aria-live="polite"></section>
+    </div>
+  </main>
+  <div id="cookie-notice" class="cookie" role="region" aria-label="Aviso de cookies" data-i18n-aria="cookie.label" hidden>
+    <p data-i18n="cookie.text">Usamos um cookie essencial e anônimo só para lembrar quais links são seus. Sem ele, o site não consegue mostrar sua lista.</p>
+    <button id="cookie-ok" type="button" data-i18n="cookie.ok">Entendi</button>
+  </div>
+  <script src="i18n.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
