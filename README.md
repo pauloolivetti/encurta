@@ -2,7 +2,7 @@
 
 Encurtador de links com painel de métricas: cole uma URL longa, receba um link curto e acompanhe os cliques por dia, de cada link ou de todos somados. O painel funciona em português e inglês.
 
-<!-- Adicione aqui um print do painel: ![Painel](docs/painel.png) -->
+   ![Painel do encurta](docs/painel.png)
 
 ## Arquitetura
 
