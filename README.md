@@ -71,6 +71,8 @@ cd backend
 npm test
 ```
 
+Um workflow do GitHub Actions (`.github/workflows/backend-tests.yml`) roda esses testes automaticamente a cada push ou pull request que mexa em `backend/`.
+
 ## Como funciona
 
 - O código do link tem 6 caracteres gerados com `crypto.randomBytes`, sem caracteres ambíguos (`0`, `O`, `1`, `l`, `I`). Em caso de colisão, o servidor tenta outro código.
@@ -101,7 +103,7 @@ O projeto roda em qualquer máquina com Docker. A versão de demonstração roda
 - [ ] Expiração e limite de cliques por link
 - [ ] Rate limiting na criação de links
 - [ ] Guardar os favicons no servidor, sem consultar o Google
-- [ ] CI com GitHub Actions
+- [x] CI com GitHub Actions (roda os testes do backend a cada push/PR)
 - [ ] Domínio próprio com HTTPS
 
 ## Licença
