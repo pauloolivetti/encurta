@@ -62,6 +62,15 @@ docker compose down -v         # para tudo e APAGA os dados do banco
 
 Os erros da API trazem um `code` (como `invalid_url`), e o painel mostra o texto no idioma escolhido.
 
+### Testes
+
+O backend tem testes automatizados para as funções puras de validação de URL e geração de código (`backend/src/util.js`), usando o test runner nativo do Node (sem dependências extras):
+
+```bash
+cd backend
+npm test
+```
+
 ## Como funciona
 
 - O código do link tem 6 caracteres gerados com `crypto.randomBytes`, sem caracteres ambíguos (`0`, `O`, `1`, `l`, `I`). Em caso de colisão, o servidor tenta outro código.
@@ -83,7 +92,7 @@ O projeto roda em qualquer máquina com Docker. A versão de demonstração roda
 ## Roadmap
 
 - [ ] Mais idiomas (espanhol, por exemplo)
-- [ ] Testes automatizados da API
+- [x] Testes automatizados da API (cobertura ainda parcial: só as funções puras por enquanto)
 - [ ] Alias personalizado (`/meu-link`)
 - [ ] Login com conta (hoje cada visitante é identificado por um cookie anônimo, e trocar de aparelho perde a lista)
 - [ ] Limite de links por visitante

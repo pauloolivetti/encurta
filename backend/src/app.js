@@ -1,9 +1,7 @@
 const express = require('express');
-const { randomBytes, randomUUID } = require('crypto');
+const { randomUUID } = require('crypto');
 const pool = require('./db');
-
-// Alfabeto sem caracteres ambíguos (0/O, 1/l/I)
-const ALPHABET = 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const { generateCode, normalizeUrl } = require('./util');
 
 // Janela do gráfico: hoje e os 13 dias anteriores, em UTC (14 barras). A tabela clicks usa o apelido "c".
 const LAST_14_DAYS = `c.clicked_at >= ((date_trunc('day', now() AT TIME ZONE 'UTC') - interval '13 days') AT TIME ZONE 'UTC')`;
@@ -11,26 +9,6 @@ const PER_DAY = `to_char(c.clicked_at AT TIME ZONE 'UTC', 'YYYY-MM-DD') AS day, 
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
-
-function generateCode(length = 6) {
-  const bytes = randomBytes(length);
-  let code = '';
-  for (let i = 0; i < length; i++) code += ALPHABET[bytes[i] % ALPHABET.length];
-  return code;
-}
-
-// Devolve a URL normalizada (host em minúsculas, "/" final em endereços sem caminho etc.) ou null se for inválida.
-// Normalizar faz "https://globo.com" e "https://GLOBO.com/" contarem como o mesmo link.
-function normalizeUrl(value) {
-  if (typeof value !== 'string') return null;
-  try {
-    const parsed = new URL(value.trim());
-    if (!['http:', 'https:'].includes(parsed.protocol)) return null;
-    return parsed.href.length <= 2048 ? parsed.href : null;
-  } catch {
-    return null;
-  }
-}
 
 // Endereço público usado nos links curtos: BASE_URL, ou o endereço pelo qual o site foi acessado
 function baseUrl(req) {
