@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { generateCode, normalizeUrl, ALPHABET } = require('../src/util');
+const { generateCode, normalizeUrl, ALPHABET, readCookie } = require('../src/util');
 
 test('normalizeUrl aceita URLs http e https', () => {
   assert.equal(normalizeUrl('https://example.com'), 'https://example.com/');
@@ -49,4 +49,24 @@ test('generateCode só usa caracteres do alfabeto sem ambiguidade (sem 0, O, 1, 
     }
     assert.doesNotMatch(code, /[0O1lI]/);
   }
+});
+
+test('readCookie encontra o cookie certo entre vários', () => {
+  assert.equal(readCookie('a=1; visitor_id=abc-123; b=2', 'visitor_id'), 'abc-123');
+});
+
+test('readCookie decodifica valores com percent-encoding', () => {
+  assert.equal(readCookie('visitor_id=abc%2Fdef', 'visitor_id'), 'abc/def');
+});
+
+test('readCookie devolve null quando o cookie não existe ou o cabeçalho está vazio', () => {
+  assert.equal(readCookie('a=1; b=2', 'visitor_id'), null);
+  assert.equal(readCookie('', 'visitor_id'), null);
+  assert.equal(readCookie(undefined, 'visitor_id'), null);
+  assert.equal(readCookie(null, 'visitor_id'), null);
+});
+
+test('readCookie devolve null (em vez de lançar erro) com percent-encoding inválido', () => {
+  assert.equal(readCookie('visitor_id=%', 'visitor_id'), null);
+  assert.equal(readCookie('visitor_id=%E0%A4%A', 'visitor_id'), null);
 });

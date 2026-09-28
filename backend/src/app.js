@@ -1,7 +1,7 @@
 const express = require('express');
 const { randomUUID } = require('crypto');
 const pool = require('./db');
-const { generateCode, normalizeUrl } = require('./util');
+const { generateCode, normalizeUrl, readCookie } = require('./util');
 
 // Janela do gráfico: hoje e os 13 dias anteriores, em UTC (14 barras). A tabela clicks usa o apelido "c".
 const LAST_14_DAYS = `c.clicked_at >= ((date_trunc('day', now() AT TIME ZONE 'UTC') - interval '13 days') AT TIME ZONE 'UTC')`;
@@ -15,18 +15,10 @@ function baseUrl(req) {
   return (process.env.BASE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
 }
 
-function readCookie(req, name) {
-  for (const part of (req.get('cookie') || '').split(';')) {
-    const [key, ...rest] = part.trim().split('=');
-    if (key === name) return decodeURIComponent(rest.join('='));
-  }
-  return null;
-}
-
 // Identifica o visitante por um cookie anônimo (UUID aleatório), sem cadastro.
 // Só vale para /api: quem apenas clica num link curto não recebe cookie.
 function visitor(req, res, next) {
-  let id = readCookie(req, 'visitor_id');
+  let id = readCookie(req.get('cookie'), 'visitor_id');
   if (!UUID_PATTERN.test(id || '')) {
     id = randomUUID();
     res.cookie('visitor_id', id, { httpOnly: true, sameSite: 'lax', secure: req.secure, maxAge: ONE_YEAR_MS });

@@ -23,4 +23,20 @@ function normalizeUrl(value) {
   }
 }
 
-module.exports = { ALPHABET, generateCode, normalizeUrl };
+// Lê o valor de um cookie a partir do cabeçalho "Cookie" bruto (req.get('cookie')).
+// Devolve null se o cookie não existir ou se o valor tiver percent-encoding inválido
+// (ex: "%"), em vez de deixar o decodeURIComponent estourar e derrubar a requisição.
+function readCookie(cookieHeader, name) {
+  for (const part of (cookieHeader || '').split(';')) {
+    const [key, ...rest] = part.trim().split('=');
+    if (key !== name) continue;
+    try {
+      return decodeURIComponent(rest.join('='));
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+module.exports = { ALPHABET, generateCode, normalizeUrl, readCookie };
