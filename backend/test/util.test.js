@@ -31,6 +31,21 @@ test('normalizeUrl rejeita URLs maiores que 2048 caracteres', () => {
   assert.equal(normalizeUrl(longUrl), null);
 });
 
+test('normalizeUrl remove a porta quando é a padrão do protocolo, mas mantém portas diferentes', () => {
+  assert.equal(normalizeUrl('http://example.com:80/'), 'http://example.com/');
+  assert.equal(normalizeUrl('https://example.com:443/'), 'https://example.com/');
+  assert.equal(normalizeUrl('https://example.com:8443/'), 'https://example.com:8443/');
+});
+
+test('normalizeUrl tira espaços, tabs e quebras de linha nas pontas', () => {
+  assert.equal(normalizeUrl('\t https://example.com \n'), 'https://example.com/');
+});
+
+test('normalizeUrl é idempotente (normalizar de novo o resultado não muda nada)', () => {
+  const once = normalizeUrl('https://EXAMPLE.com:443/Path?a=1');
+  assert.equal(normalizeUrl(once), once);
+});
+
 test('generateCode gera código com 6 caracteres por padrão', () => {
   const code = generateCode();
   assert.equal(code.length, 6);
@@ -69,4 +84,16 @@ test('readCookie devolve null quando o cookie não existe ou o cabeçalho está 
 test('readCookie devolve null (em vez de lançar erro) com percent-encoding inválido', () => {
   assert.equal(readCookie('visitor_id=%', 'visitor_id'), null);
   assert.equal(readCookie('visitor_id=%E0%A4%A', 'visitor_id'), null);
+});
+
+test('readCookie usa a primeira ocorrência quando o nome aparece repetido', () => {
+  assert.equal(readCookie('visitor_id=first; visitor_id=second', 'visitor_id'), 'first');
+});
+
+test('readCookie devolve string vazia quando o cookie existe mas não tem valor', () => {
+  assert.equal(readCookie('visitor_id=; b=2', 'visitor_id'), '');
+});
+
+test('generateCode com tamanho 0 devolve string vazia', () => {
+  assert.equal(generateCode(0), '');
 });
