@@ -39,4 +39,11 @@ function readCookie(cookieHeader, name) {
   return null;
 }
 
-module.exports = { ALPHABET, generateCode, normalizeUrl, readCookie };
+// Resolve o endereço base público usado nos links curtos: `configuredUrl` (a variável de
+// ambiente BASE_URL), se definida, ou o protocolo e host da própria requisição. Em ambos os
+// casos remove uma eventual "/" final, para o link curto não ficar com "//" no meio.
+function resolveBaseUrl(configuredUrl, protocol, host) {
+  return (configuredUrl || `${protocol}://${host}`).replace(/\/$/, '');
+}
+
+module.exports = { ALPHABET, generateCode, normalizeUrl, readCookie, resolveBaseUrl };

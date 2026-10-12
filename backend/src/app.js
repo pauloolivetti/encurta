@@ -1,7 +1,7 @@
 const express = require('express');
 const { randomUUID } = require('crypto');
 const pool = require('./db');
-const { generateCode, normalizeUrl, readCookie } = require('./util');
+const { generateCode, normalizeUrl, readCookie, resolveBaseUrl } = require('./util');
 
 // Janela do gráfico: hoje e os 13 dias anteriores, em UTC (14 barras). A tabela clicks usa o apelido "c".
 const LAST_14_DAYS = `c.clicked_at >= ((date_trunc('day', now() AT TIME ZONE 'UTC') - interval '13 days') AT TIME ZONE 'UTC')`;
@@ -10,9 +10,11 @@ const PER_DAY = `to_char(c.clicked_at AT TIME ZONE 'UTC', 'YYYY-MM-DD') AS day, 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 
-// Endereço público usado nos links curtos: BASE_URL, ou o endereço pelo qual o site foi acessado
+// Endereço público usado nos links curtos: BASE_URL, ou o endereço pelo qual o site foi acessado.
+// A lógica em si é pura e fica em util.js (resolveBaseUrl), para dar para testar sem precisar
+// de um req de verdade.
 function baseUrl(req) {
-  return (process.env.BASE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+  return resolveBaseUrl(process.env.BASE_URL, req.protocol, req.get('host'));
 }
 
 // Identifica o visitante por um cookie anônimo (UUID aleatório), sem cadastro.

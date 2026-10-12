@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { generateCode, normalizeUrl, ALPHABET, readCookie } = require('../src/util');
+const { generateCode, normalizeUrl, ALPHABET, readCookie, resolveBaseUrl } = require('../src/util');
 
 test('normalizeUrl aceita URLs http e https', () => {
   assert.equal(normalizeUrl('https://example.com'), 'https://example.com/');
@@ -96,4 +96,22 @@ test('readCookie devolve string vazia quando o cookie existe mas não tem valor'
 
 test('generateCode com tamanho 0 devolve string vazia', () => {
   assert.equal(generateCode(0), '');
+});
+
+test('resolveBaseUrl usa a URL configurada (BASE_URL) quando ela está definida', () => {
+  assert.equal(resolveBaseUrl('https://encurta.exemplo.com', 'http', 'localhost:3000'), 'https://encurta.exemplo.com');
+});
+
+test('resolveBaseUrl remove a "/" final da URL configurada', () => {
+  assert.equal(resolveBaseUrl('https://encurta.exemplo.com/', 'https', 'localhost'), 'https://encurta.exemplo.com');
+});
+
+test('resolveBaseUrl usa protocolo e host da requisição quando não há URL configurada', () => {
+  assert.equal(resolveBaseUrl(undefined, 'https', 'encurta.exemplo.com'), 'https://encurta.exemplo.com');
+  assert.equal(resolveBaseUrl(null, 'http', 'localhost:8080'), 'http://localhost:8080');
+  assert.equal(resolveBaseUrl('', 'http', 'localhost:8080'), 'http://localhost:8080');
+});
+
+test('resolveBaseUrl remove só uma "/" final, mesmo que o host monte "//"', () => {
+  assert.equal(resolveBaseUrl(undefined, 'https', 'encurta.exemplo.com/'), 'https://encurta.exemplo.com');
 });
